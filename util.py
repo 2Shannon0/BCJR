@@ -114,3 +114,9 @@ def fit_gfn( a, nbit ):
         return np.append( a, np.zeros(b.size-a.size-1, dtype=int) )
     else:
         return gf2_remainder(a,b)
+    
+def print_matrix(m):
+    for i in range(m.shape[0]):
+      for j in range(m.shape[1]):
+          print(int(m[i][j]), end=" ")
+      print()
