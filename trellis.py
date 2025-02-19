@@ -70,8 +70,6 @@ symbol_np_arr = np.empty([int(p_mat.shape[0]), int(p_mat.shape[1])], dtype=GFn.G
 for x in range(p_mat.shape[0]):
     for y in range(p_mat.shape[1]):
         symbol_np_arr[x][y] = GFn.GFn(p_mat[x][y], 1)
-print('symbol_np_arr:\n')
-print_matrix(symbol_np_arr)
 
 # Построение решетки
 for layer in range(p_mat.shape[0]):
@@ -87,6 +85,8 @@ for layer in range(p_mat.shape[0]):
                 vex_new.append(add_v)
     vex.append(vex_new)
     edg.append(edg_new)
+# vex - массив, элементами которого являются массивы с синдромамми в виде массивов с символами
+# edg - массив, элементами которого являются массивы с тюплами с тремя значениями (синдром1, цифра ребра, синдром2)
 
 # Отобразить структуру
 # for layer, states in enumerate(vex):
