@@ -57,10 +57,13 @@ def read_mat( filename ):
 
 # преобразует массив битов в целое число
 def arr2int( v ):
+    if isinstance(v, str):
+        return int(v, 2)
     total = 0
     for e, digit in enumerate(v):
         total *= 2**digit.nbit
         total += int(digit)
+
     return total
 
 # Возвращает примитивный полином для GF(2^n)

@@ -11,33 +11,22 @@ def gfn_array_to_str(gfns: list) -> str:
 
 class BCJRDecoder:
     def __init__(self, vex, edg, H, sigma=1.0):
-        """
-        Инициализация BCJR декодера для линейных блочных кодов на основе решетки.
-        :param vex: Массив с синдромами (список списков символов)
-        :param edg: Массив с рёбрами (список кортежей (синдром1, цифра ребра, синдром2))
-        :param H: Проверочная матрица (numpy.ndarray)
-        :param sigma: Стандартное отклонение шума (по умолчанию 1.0)
-        """
         self.vex = vex
         self.edg = edg
         self.H = H
         self.sigma = sigma
         self.snr = 1 / (2 * sigma**2)
 
-    def compute_llr(self, y):
-        """
-        Вычисляет LLR (Log Likelihood Ratio) для входных данных.
-        :param y: Принятый вектор (numpy.ndarray)
-        :return: Вектор LLR (numpy.ndarray)
-        """
-        return 2 * self.snr * y
-
     def decode(self, llr, sigma):
 
         a_priori = 0.5
         dispersion = sigma**2
 
+        Trellis(vex = self.vex, edg = self.edg).plot_sections('Исходная решетка', '1.Исходная решетка')
+
         self.make_edges_with_bpsk()
+
+        Trellis(vex = self.vex, edg = self.edg).plot_sections('Решетка после BPSK', '2.Решетка после BPSK')
 
         # Берем структуру edg, меняя значения в ребре на гамму
         gamma = deepcopy(self.edg)
@@ -56,6 +45,7 @@ class BCJRDecoder:
                 )
                 print(gamma[i][j])
             print()
+        Trellis(vex = self.vex, edg = gamma).plot_sections_float('Поменяли значения в ребрах на расчитанные gamma', '3.Gamma')
 
         print("alpha")
         # Сохраняем альфы в виде списка из словарей. Каждый i-ый словарь - это, по сути, ярус
@@ -87,6 +77,7 @@ class BCJRDecoder:
 
             print(alpha[i + 1])
         print()
+        Trellis(vex = alpha, edg = gamma).plot_sections_float('Поменяли значения в вершинах на расчитанные alpha', '4.Alpha')
 
         print("beta")
         beta = [{} for _ in range(len(gamma) + 1)]
@@ -112,6 +103,7 @@ class BCJRDecoder:
 
             print(beta[i])
         print()
+        Trellis(vex = beta, edg = gamma).plot_sections_float('Поменяли значения в вершинах на расчитанные beta', '5.Beta')
 
         print("sigma")
         sigma = deepcopy(gamma)

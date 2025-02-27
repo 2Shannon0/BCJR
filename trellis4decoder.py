@@ -5,13 +5,13 @@ import networkx as nx
 import matplotlib.pyplot as plt
 
 class Trellis:
-    def __init__(self, matrix_file):
+    def __init__(self, matrix_file = None, vex = None, edg = None):
         self.file = matrix_file
-        self.p_mat = read_mat(matrix_file)
-        self.vex = None
-        self.edj = None
+        self.p_mat = matrix_file and read_mat(matrix_file)
+        self.vex = vex
+        self.edg = edg
 
-    def symbol_all(self, nbit=2, b=2):
+    def symbol_all(self, nbit=1, b=1):
         ret_list = []
         if nbit == 1:
             for a0 in range(0, 2**b):
@@ -62,8 +62,10 @@ class Trellis:
         self.remove_nonzero(self.edg, self.vex)
     
     # Функция построения и отображения графа (решетки) по слоям
-    def plot_sections(self):
-        start, end = [0, self.p_mat.shape[0]] # Определяем границы слоев для отрисовки
+    def plot_sections(self, title=None, save_name=None):
+        # Определяем границы слоев для отрисовки
+        start, end = [0, len(self.vex)-1]
+
         edges = []  # Список рёбер
         pos_dict = {} # Словарь с координатами узлов
 
@@ -78,7 +80,7 @@ class Trellis:
             for e in e_layer:
                 v0, a, v1 = e
                 edges.append((v2str(v0, num_layer), v2str(v1, num_layer+1), {'weight': int(a)}))
-
+        plt.figure(figsize=(16, 9))
         G = nx.Graph()
         G.add_edges_from(edges)
         
@@ -88,10 +90,49 @@ class Trellis:
         nx.draw_networkx_edges(G, pos_dict, edgelist=edges, width=6) # Отображаем рёбра
         labels = nx.get_edge_attributes(G, 'weight') # Получаем веса рёбер
         nx.draw_networkx_edge_labels(G, pos_dict, edge_labels=labels) # Добавляем подписи рёбер
-        plt.show()
-    
-t = Trellis('matricies/file3.csv')
 
-print(t.file)
-t.build_trellis()
-t.plot_sections()
+        if title is not None:
+            plt.title(title)
+
+        if save_name is None:
+            plt.show()
+        else: 
+            plt.savefig(f'process_in_pictures/{save_name}.png', dpi=300, bbox_inches='tight')
+    
+    def plot_sections_float(self, title=None, save_name=None):
+        # Определяем границы слоев для отрисовки
+        start, end = [0, len(self.vex)-1]
+
+        edges = []  # Список рёбер
+        pos_dict = {} # Словарь с координатами узлов
+
+        # Обход вершин по слоям
+        for num_layer, v_layer in zip(range(start, end+1), self.vex[start:end+1]):
+            for v in v_layer:
+                v_name = v2str(v, num_layer)
+                pos_dict[v_name] = np.array([num_layer, -arr2int(v)])
+        
+        # Обход рёбер по слоям
+        for num_layer, e_layer in zip(range(start, end), self.edg[start:end]):
+            for e in e_layer:
+                v0, a, v1 = e
+                edges.append((v2str(v0, num_layer), v2str(v1, num_layer+1), {'weight': round(a, 3)}))
+        plt.figure(figsize=(16, 9))
+        G = nx.Graph()
+        G.add_edges_from(edges)
+        # !
+        node_values = {node: f"{node}\nval={G.degree(node)}" for node in G.nodes()}
+        # !
+        pos = nx.spring_layout(G) # Вычисление позиций узлов
+        nx.draw_networkx_nodes(G, pos_dict, node_size=1200) # Рисуем узлы
+        nx.draw_networkx_labels(G, pos_dict, font_size=12, font_family='sans-serif', labels=node_values, verticalalignment='bottom') # Подписываем узлы
+        nx.draw_networkx_edges(G, pos_dict, edgelist=edges, width=6) # Отображаем рёбра
+        labels = nx.get_edge_attributes(G, 'weight') # Получаем веса рёбер
+        nx.draw_networkx_edge_labels(G, pos_dict, edge_labels=labels) # Добавляем подписи рёбер
+        if title is not None:
+            plt.title(title)
+
+        if save_name is None:
+            plt.show()
+        else:
+            plt.savefig(f'process_in_pictures/{save_name}.png', dpi=300, bbox_inches='tight')
