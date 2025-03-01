@@ -1,5 +1,5 @@
 from BCJR_visible import BCJRDecoder
-from trellis4decoder import Trellis
+from simulation.trellis4decoder import Trellis
 import numpy as np
 
 
