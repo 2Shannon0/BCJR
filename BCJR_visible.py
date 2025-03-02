@@ -1,7 +1,6 @@
 from copy import deepcopy
 import numpy as np
-from scipy.special import logsumexp
-from trellis4decoder import Trellis
+from simulation.trellis4decoder import Trellis
 
 def gfn_array_to_str(gfns: list) -> str:
     result = ""
