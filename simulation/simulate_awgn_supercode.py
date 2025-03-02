@@ -1,23 +1,24 @@
 from BCJR import BCJRDecoder
 from simulation.trellis4decoder import Trellis
-from simulation.trellis_repo import get_trellis
 from simulation.bpsk import bpsk_modulation, bpsk_demodulation
-from awgn import awgn_llr
+from simulation.awgn import awgn_llr
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 
+
 ESNO_START = -12
-ESNO_END = 4
+ESNO_END = -2
 ESNO_STEP = 0.4
-WRONG_DECODING_NUMBER = 10
+WRONG_DECODING_NUMBER = 5
+SUPERCODE_ITERATIONS = 5
 
-# Раскоментить, если нет закэшированной решетки
-# trellis = Trellis("../matricies/file_hamming.csv")
-# trellis.build_trellis()
 
-trellis = get_trellis("trellis_bch_15_7")
+trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_1.csv")
+trellis1.build_trellis()
+trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_2.csv")
+trellis2.build_trellis()
 
-N = len(trellis.vex) - 1
+N = len(trellis1.vex) - 1
 
 # Задаем нулевое кодовое слово
 codeword_initial = [0] * N
@@ -34,10 +35,9 @@ while round(value, 2) <= ESNO_END:
 fer = [0] * len(esno_array)
 ber = [0] * len(esno_array)
 
-# Инициализируем декодер
-decoder = BCJRDecoder(trellis.vex, trellis.edg)
+decoder1 = BCJRDecoder(trellis1.vex, trellis1.edg)
+decoder2 = BCJRDecoder(trellis2.vex, trellis2.edg)
 
-# # Запускаем моделирование
 for (i, esno) in enumerate(esno_array):
     tests_passed, wrong_decoding, errors_at_all = 0, 0, 0
 
@@ -47,13 +47,48 @@ for (i, esno) in enumerate(esno_array):
         tests_passed += 1
 
         # Для заданного отношения сигнал-шум считаем llr
-        llr_in, sigma2 = awgn_llr(codeword_modulated, esno)
+        llr, sigma2 = awgn_llr(codeword_modulated, esno)
 
-        # llr после декодирования
-        llr_out = decoder.decode(llr_in, sigma2)
+        llr_prev_super_1 = [0] * N
+        llr_prev_super_2 = [0] * N
+
+        for _ in range(SUPERCODE_ITERATIONS):
+
+            '''
+            1-st supercode
+            '''
+            llr_to_decode = [0] * N
+
+            for j in range(N):
+                llr_to_decode[j] = llr[j] - llr_prev_super_1[j]
+
+            llr_out_1 = decoder1.decode(llr_to_decode, sigma2)
+
+            for j in range(N):
+                llr_out_1[j] -= llr[j] - llr_to_decode[j]
+                llr_prev_super_1[j] = llr_out_1[j]
+
+            '''
+            2-nd supercode
+            '''
+            llr_to_decode = [0] * N
+
+            for j in range(N):
+                llr_to_decode[j] = llr[j] - llr_prev_super_2[j]
+
+            llr_out_2 = decoder2.decode(llr_to_decode, sigma2)
+
+            for j in range(N):
+                llr_out_2[j] -= llr[j] - llr_to_decode[j]
+                llr_prev_super_2[j] = llr_out_2[j]
+
+
+            for j in range(N):
+                llr[j] += llr_out_1[j] + llr_out_2[j]
+
 
         # Декодированное кодовое слово в бинарном виде
-        codeword_result = bpsk_demodulation(llr_out)
+        codeword_result = bpsk_demodulation(llr)
 
         # считаем кол-во ошибок
         errors = 0
@@ -76,7 +111,7 @@ print(esno_array)
 print(fer)
 print(ber)
 
-fer_smooth = gaussian_filter1d(fer, sigma=2).tolist() # Параметр sigma овечает за то, насколько сильно сглаживать график. При 2 выглядит оптимально
+fer_smooth = gaussian_filter1d(fer, sigma=1).tolist()
 
 plt.plot(esno_array, fer, label="Original", alpha=0.5, linewidth=1)
 plt.plot(esno_array, fer_smooth, label="Smoothed", linewidth=2)
