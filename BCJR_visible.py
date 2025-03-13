@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+import mpmath as mp
 from simulation.trellis4decoder import Trellis
 
 def gfn_array_to_str(gfns: list) -> str:
@@ -9,142 +10,139 @@ def gfn_array_to_str(gfns: list) -> str:
     return result
 
 class BCJRDecoder:
-    def __init__(self, vex, edg, H, sigma=1.0):
+    def __init__(self, vex, edg):
+        """
+        Инициализация BCJR декодера для линейных блочных кодов на основе решетки.
+        :param vex: Массив с синдромами (список списков символов)
+        :param edg: Массив с рёбрами (список кортежей (синдром1, цифра ребра, синдром2))
+        """
         self.vex = vex
         self.edg = edg
-        self.H = H
-        self.sigma = sigma
-        self.snr = 1 / (2 * sigma**2)
-
-    def decode(self, llr, sigma):
-
-        a_priori = 0.5
-        dispersion = sigma**2
-
+        
         Trellis(vex = self.vex, edg = self.edg).plot_sections('Исходная решетка', '1.Исходная решетка')
-
+        
+        self.edg_bpsk = deepcopy(self.edg)
         self.make_edges_with_bpsk()
+        
+        Trellis(vex = self.vex, edg = self.edg_bpsk).plot_sections('Решетка после BPSK', '2.Решетка после BPSK')
 
-        Trellis(vex = self.vex, edg = self.edg).plot_sections('Решетка после BPSK', '2.Решетка после BPSK')
 
+    def decode(self, llr_in, sigma2):
+        a_priori = 0.5
+
+        '''
+        FORWARD
+        '''
         # Берем структуру edg, меняя значения в ребре на гамму
-        gamma = deepcopy(self.edg)
+        gammas = deepcopy(self.edg_bpsk)
         # последнее ребро не нужно, ибо оно по факту ни о чем. Кол-во ярусов должно быть N, а в массиве их N+1
-        del gamma[-1]
+        del gammas[-1]
 
-        print("gamma")
-        constant_coef = a_priori * (1 / np.sqrt(2 * np.pi * dispersion)) # ВОПРОС. В матлабе эта величина еще возводится в степень N
-        for i in range(len(gamma)):
-            for j in range(len(gamma[i])):
-                diff = (llr[i] - self.edg[i][j][1])**2 / (2 * dispersion)
-                gamma[i][j] = (
-                    gfn_array_to_str(gamma[i][j][0]),
-                    constant_coef * np.exp(-diff),
-                    gfn_array_to_str(gamma[i][j][2])
-                )
-                print(gamma[i][j])
-            print()
-        Trellis(vex = self.vex, edg = gamma).plot_sections_float('Поменяли значения в ребрах на расчитанные gamma', '3.Gamma')
-
-        print("alpha")
         # Сохраняем альфы в виде списка из словарей. Каждый i-ый словарь - это, по сути, ярус
         # Ключ словаря - синдром, он на каждом ярусе уникален. Значение - посчитанная альфа
         # Такой подход обусловлен тем, что пробегаясь по ребрам, мы могли быстро извлечь альфу следующей вершины
-        alpha = [{} for _ in range(len(gamma) + 1)]
-        alpha[0][gamma[0][0][0]] = 1
-        print(alpha[0])
-        for i in range(len(gamma)):
-            for j in range(len(gamma[i])):
-                cur_gamma = gamma[i][j][1]
-                next_vex = gamma[i][j][2]
-                prev_vex = gamma[i][j][0]
+        alphas = [{} for _ in range(len(gammas) + 1)]
+        alphas[0][gfn_array_to_str(gammas[0][0][0])] = 1
 
-                new_alpha = cur_gamma * alpha[i][prev_vex]
+        constant_coef = a_priori * (1 / (2 * mp.pi * sigma2))  # ВОПРОС. В матлабе эта величина еще возводится в степень N
+        for i in range(len(gammas)):
+            for j in range(len(gammas[i])):
+                '''
+                GAMMA SECTION
+                '''
+                diff = (llr_in[i] - self.edg_bpsk[i][j][1]) ** 2 / (2 * sigma2)
+                cur_gamma = constant_coef * mp.exp(-diff)
+                prev_vex = gfn_array_to_str(gammas[i][j][0])
+                next_vex = gfn_array_to_str(gammas[i][j][2])
+
+                gammas[i][j] = (prev_vex, cur_gamma, next_vex)
+
+                # print("layer", i, "/ gamma =", cur_gamma)
+
+                '''
+                ALPHA SECTION
+                '''
+                new_alpha = cur_gamma * alphas[i][prev_vex]
                 # Если вершина с синдромом уже была рассмотрена, то считаем альфу
                 # как сумму раннее посчитанного значения и текущего.
                 # Это случай когда в вершину введет 2 ребра
-                if next_vex in alpha[i + 1]:
-                    alpha[i + 1][next_vex] += new_alpha
+                if next_vex in alphas[i + 1]:
+                    alphas[i + 1][next_vex] += new_alpha
                 # В противном случае просто записываем значение
                 else:
-                    alpha[i + 1][next_vex] = new_alpha
+                    alphas[i + 1][next_vex] = new_alpha
 
             # Normalization
-            summa = sum(alpha[i + 1].values())
-            for key in alpha[i + 1].keys():
-                alpha[i + 1][key] /= summa
+            summa = sum(alphas[i + 1].values())
+            if summa != 0:
+                for key in alphas[i + 1].keys():
+                    alphas[i + 1][key] /= summa
+            
 
-            print(alpha[i + 1])
-        print()
-        Trellis(vex = alpha, edg = gamma).plot_sections_float('Поменяли значения в вершинах на расчитанные alpha', '4.Alpha')
+        Trellis(vex = self.vex, edg = gammas).plot_sections_float('Поменяли значения в ребрах на расчитанные gamma', '3.Gamma')
+        Trellis(vex = alphas, edg = gammas).plot_sections_float_alpha('Поменяли значения в вершинах на расчитанные alpha', '4.Alpha')
 
-        print("beta")
-        beta = [{} for _ in range(len(gamma) + 1)]
-        beta[-1][gamma[0][0][0]] = 1 # в матлабе последний бета равен последнему альфа, а не харкод 1. Однако, в таком подходе в результате нормализации послдений альфа всегда будет 1
-        print(beta[-1])
-        for i in range(len(gamma) - 1, -1, -1):
-            for j in range(len(gamma[i])):
-                cur_gamma = gamma[i][j][1]
+        '''
+        BACKWARD
+        '''
+        betas = [{} for _ in range(len(gammas) + 1)]
+        betas[-1][gammas[0][0][0]] = 1  # в матлабе последний бета равен последнему альфа, а не харкод 1. Однако, в таком подходе в результате нормализации послдений альфа всегда будет 1
+
+        llr_out = [0] * len(llr_in)
+
+        for i in range(len(gammas) - 1, -1, -1):
+            up, down = 0, 0  # числитель и знаменатель для рассчета llr
+            for j in range(len(gammas[i])):
+                '''
+                BETA SECTION
+                '''
+                cur_gamma = gammas[i][j][1]
                 # обратный проход - next и prev меняются местами
-                next_vex = gamma[i][j][0]
-                prev_vex = gamma[i][j][2]
+                next_vex = gammas[i][j][0]
+                prev_vex = gammas[i][j][2]
 
-                new_beta = cur_gamma * beta[i + 1][prev_vex]
-                if next_vex in beta[i]:
-                    beta[i][next_vex] += new_beta
+                new_beta = cur_gamma * betas[i + 1][prev_vex]
+                if next_vex in betas[i]:
+                    betas[i][next_vex] += new_beta
                 else:
-                    beta[i][next_vex] = new_beta
+                    betas[i][next_vex] = new_beta
 
-            # Normalization
-            summa = sum(beta[i].values())
-            for key in beta[i].keys():
-                beta[i][key] /= summa
-
-            print(beta[i])
-        print()
-        Trellis(vex = beta, edg = gamma).plot_sections_float('Поменяли значения в вершинах на расчитанные beta', '5.Beta')
-
-        print("sigma")
-        sigma = deepcopy(gamma)
-        for i in range(len(gamma)):
-            for j in range(len(gamma[i])):
-                cur_gamma = gamma[i][j][1]
-                next_vex = gamma[i][j][2]
-                prev_vex = gamma[i][j][0]
-
+                '''
+                SIGMA SECTION
+                '''
                 # Берем альфу, которая слева от текущего ребра
-                cur_alpha = alpha[i][prev_vex]
+                cur_alpha = alphas[i][next_vex]
                 # Берем бету, которая справа от текущего ребра
-                cur_beta = beta[i + 1][next_vex]
+                cur_beta = betas[i + 1][prev_vex]
 
-                sigma[i][j] = (
-                    prev_vex,
-                    cur_gamma * cur_alpha * cur_beta,
-                    next_vex
-                )
+                cur_sigma = cur_gamma * cur_alpha * cur_beta
 
-                print(sigma[i][j])
-            print()
-
-        print("LLR")
-        out_llr = []
-        for i in range(len(sigma)):
-            up, down = 0, 0
-            for j in range(len(sigma[i])):
+                '''
+                LLR SECTION
+                '''
                 # не забываем про БПСК, по факту ищем ребра с 0
-                if self.edg[i][j][1] == 1:
-                    up += sigma[i][j][1]
+                if self.edg_bpsk[i][j][1] == 1:
+                    up += cur_sigma
                 else:
-                    down += sigma[i][j][1]
+                    down += cur_sigma
 
+            # print("up=", up, " down=", down, " log=", np.log(up / down), end=" // ", sep="")
+            # llr_out[i] = np.log(up / down)
             # такое вообще возможно?
-            if down != 0:
-                out_llr.append(np.log(up / down))
+            if down == 0:
+                llr_out[i] = 9999
             else:
-                out_llr.append(9999)
-        print(out_llr)
+                llr_out[i] = mp.ln(up / down)
+
+            # Normalization beta
+            summa = sum(betas[i].values())
+            if summa != 0:
+                for key in betas[i].keys():
+                    betas[i][key] /= summa
+        Trellis(vex = betas, edg = gammas).plot_sections_float_alpha('Поменяли значения в вершинах на расчитанные beta', '5.Beta')
+        return llr_out
 
     def make_edges_with_bpsk(self):
-        for i in range(len(self.edg)):
-            for j in range(len(self.edg[i])):
-                self.edg[i][j] = (self.edg[i][j][0], -2 * int(self.edg[i][j][1]) + 1, self.edg[i][j][2])
+        for i in range(len(self.edg_bpsk)):
+            for j in range(len(self.edg_bpsk[i])):
+                self.edg_bpsk[i][j] = (self.edg_bpsk[i][j][0], -2 * int(self.edg_bpsk[i][j][1]) + 1, self.edg_bpsk[i][j][2])
