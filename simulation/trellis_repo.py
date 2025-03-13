@@ -1,5 +1,5 @@
 import pickle
-from trellis4decoder import Trellis
+from simulation.trellis4decoder import Trellis
 
 
 FILE_PATH = "../matricies/LDPC_16_10.csv"
