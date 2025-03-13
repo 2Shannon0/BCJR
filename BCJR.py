@@ -1,5 +1,6 @@
 from copy import deepcopy
 import numpy as np
+import mpmath as mp
 
 def gfn_array_to_str(gfns: list) -> str:
     result = ""
@@ -37,19 +38,20 @@ class BCJRDecoder:
         alphas = [{} for _ in range(len(gammas) + 1)]
         alphas[0][gfn_array_to_str(gammas[0][0][0])] = 1
 
-        constant_coef = a_priori * (1 / np.sqrt(
-            2 * np.pi * sigma2))  # ВОПРОС. В матлабе эта величина еще возводится в степень N
+        constant_coef = a_priori * (1 / (2 * mp.pi * sigma2))  # ВОПРОС. В матлабе эта величина еще возводится в степень N
         for i in range(len(gammas)):
             for j in range(len(gammas[i])):
                 '''
                 GAMMA SECTION
                 '''
                 diff = (llr_in[i] - self.edg_bpsk[i][j][1]) ** 2 / (2 * sigma2)
-                cur_gamma = constant_coef * np.exp(-diff)
+                cur_gamma = constant_coef * mp.exp(-diff)
                 prev_vex = gfn_array_to_str(gammas[i][j][0])
                 next_vex = gfn_array_to_str(gammas[i][j][2])
 
                 gammas[i][j] = (prev_vex, cur_gamma, next_vex)
+
+                # print("layer", i, "/ gamma =", cur_gamma)
 
                 '''
                 ALPHA SECTION
@@ -114,11 +116,13 @@ class BCJRDecoder:
                 else:
                     down += cur_sigma
 
+            # print("up=", up, " down=", down, " log=", np.log(up / down), end=" // ", sep="")
+            # llr_out[i] = np.log(up / down)
             # такое вообще возможно?
-            if down != 0:
-                llr_out[i] = np.log(up / down)
-            else:
+            if down == 0:
                 llr_out[i] = 9999
+            else:
+                llr_out[i] = mp.ln(up / down)
 
             # Normalization beta
             summa = sum(betas[i].values())
