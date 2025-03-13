@@ -46,6 +46,7 @@ class Trellis:
 
         # Построение решетки
         for layer in range(self.p_mat.shape[0]):
+            print(layer)
             vex_new = []
             edg_new = []
             symbol_layer = symbol_np_arr[layer]
