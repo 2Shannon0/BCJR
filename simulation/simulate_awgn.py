@@ -6,10 +6,10 @@ from awgn import awgn_llr
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 
-ESNO_START = -12
-ESNO_END = 4
+ESNO_START = -6
+ESNO_END = 4.8
 ESNO_STEP = 0.4
-WRONG_DECODING_NUMBER = 10
+WRONG_DECODING_NUMBER = 30
 
 # Раскоментить, если нет закэшированной решетки
 # trellis = Trellis("../matricies/file_hamming.csv")
@@ -19,8 +19,11 @@ trellis = get_trellis("trellis_bch_15_7")
 
 N = len(trellis.vex) - 1
 
-# Задаем нулевое кодовое слово
-codeword_initial = [0] * N
+# Задаем кодовое слово
+# codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
+codeword_initial = [1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1] # BCH(15, 7)
+# codeword_initial = [0] * N
+
 codeword_modulated = bpsk_modulation(codeword_initial)
 
 # Задаем список EsNo
@@ -67,7 +70,7 @@ for (i, esno) in enumerate(esno_array):
             errors_at_all += errors
 
             fer[i] = wrong_decoding / tests_passed
-            ber[i] = wrong_decoding / N / tests_passed
+            ber[i] = errors_at_all / N / tests_passed
 
             print(f"fer = {fer[i]}, ber = {ber[i]}, tests_passed = {tests_passed}")
 
