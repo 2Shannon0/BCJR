@@ -121,18 +121,59 @@ class Trellis:
         plt.figure(figsize=(16, 9))
         G = nx.Graph()
         G.add_edges_from(edges)
-        # !
-        node_values = {node: f"{node}\nval={G.degree(node)}" for node in G.nodes()}
-        # !
+
         pos = nx.spring_layout(G) # Вычисление позиций узлов
         nx.draw_networkx_nodes(G, pos_dict, node_size=1200) # Рисуем узлы
-        nx.draw_networkx_labels(G, pos_dict, font_size=12, font_family='sans-serif', labels=node_values, verticalalignment='bottom') # Подписываем узлы
+        nx.draw_networkx_labels(G, pos_dict, font_size=12, font_family='sans-serif') # Подписываем узлы
         nx.draw_networkx_edges(G, pos_dict, edgelist=edges, width=6) # Отображаем рёбра
         labels = nx.get_edge_attributes(G, 'weight') # Получаем веса рёбер
         nx.draw_networkx_edge_labels(G, pos_dict, edge_labels=labels) # Добавляем подписи рёбер
         if title is not None:
             plt.title(title)
 
+        if save_name is None:
+            plt.show()
+        else:
+            plt.savefig(f'process_in_pictures/{save_name}.png', dpi=300, bbox_inches='tight')
+
+    def plot_sections_float_alpha(self, title=None, save_name=None):
+        start, end = [0, len(self.vex) - 1]
+        edges = []  # Список рёбер
+        pos_dict = {}  # Словарь с координатами узлов
+        node_values = {}  # Подписи узлов
+        # Обход вершин по слоям
+        for num_layer, v_layer in zip(range(start, end + 1), self.vex[start:end + 1]):
+            for key in v_layer:
+                node_name = f"{num_layer}_{key}"  # Приводим к формату v2str
+                pos_dict[node_name] = np.array([num_layer, -arr2int(key)])  # Позиция узла
+                node_values[node_name] = f"{key}\n{round(v_layer[key], 3)}"
+        
+        # Обход рёбер по слоям
+        for num_layer, e_layer in zip(range(start, end), self.edg[start:end]):
+            for e in e_layer:
+                v0, a, v1 = e
+                edges.append((v2str(v0, num_layer), v2str(v1, num_layer+1), {'weight': round(a, 3)}))
+        plt.figure(figsize=(16, 9))
+        G = nx.Graph()
+        G.add_edges_from(edges)
+        
+        # Вычисление позиций узлов
+        nx.draw_networkx_nodes(G, pos_dict, node_size=1200)
+        nx.draw_networkx_labels(
+            G, pos_dict,
+            font_size=14,
+            font_family='sans-serif',
+            labels=node_values,
+            # verticalalignment='bottom',
+            font_color="red"
+        )
+        nx.draw_networkx_edges(G, pos_dict, edgelist=edges, width=6)
+        labels = nx.get_edge_attributes(G, 'weight')
+        nx.draw_networkx_edge_labels(G, pos_dict, edge_labels=labels)
+        
+        if title is not None:
+            plt.title(title)
+        
         if save_name is None:
             plt.show()
         else:
