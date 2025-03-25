@@ -3,14 +3,20 @@ import numpy as np
 
 # Находит вершины из списка vex, которые соединены с другими вершинами в edg
 def vex_connected( vex, edg ):
-    edgs = []
-    for v in vex:
-        for e in edg:
-            v0, a, v1 = e
-            if np.array_equal(v0,v):
-                edgs.append(v)
-                break
+    edgs = set()
+    for e in edg:
+        v0, a, v1 = e
+        v0_str = gfn_array_to_str(v0)
+        if v0_str in vex:
+            edgs.add(v0_str)
+
     return edgs
+
+def gfn_array_to_str(gfns) -> str:
+    result = ""
+    for gfn in gfns:
+        result += str(gfn)
+    return result
 
 # Преобразует массив чисел в строку, добавляя индекс i, если он указан.
 def v2str( in_arr, i=None ):

@@ -1,12 +1,8 @@
 from copy import deepcopy
 import numpy as np
 import mpmath as mp
+from util import gfn_array_to_str
 
-def gfn_array_to_str(gfns: list) -> str:
-    result = ""
-    for gfn in gfns:
-        result += str(gfn)
-    return result
 
 class BCJRDecoder:
     def __init__(self, vex, edg):
