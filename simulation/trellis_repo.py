@@ -9,6 +9,7 @@ TRELLIS_NAME = "trellis_ldpc_16_10"
 def save_trellis(file_path, trellis_name):
     t_h = Trellis(matrix_file=file_path)
     t_h.build_trellis()
+    # t_h.plot_sections()
 
     with(open(trellis_name, "wb")) as f:
         pickle.dump(t_h, f)

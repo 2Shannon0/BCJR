@@ -24,18 +24,21 @@ class Trellis:
             return ret_list
         raise ValueError(f"No symbol for nbit = {nbit}")
     
-    def remove_nonzero(self, edg, vex):
+    def remove_nonzero(self, edg, vex, vex_set):
         edg.append([(vex[0][0], 0, vex[0][0])])
+        print("removing nonzero")
         for i in reversed(range(len(edg)-1)):
-            vex_next = vex_connected(vex[i+1], edg[i+1])
-            edg[i] = [edge for edge in edg[i] if in_list(vex_next, edge[2])]
-    
+            print(f"process {len(edg) - 1 - i} / {len(edg) - 1}")
+            vex_next = vex_connected(vex_set[i+1], edg[i+1])
+            edg[i] = [edge for edge in edg[i] if gfn_array_to_str(edge[2]) in vex_next]
+
     def build_trellis(self):
         # p_mat = read_mat(self.file)
 
         # Определяем начальное (нулевое) состояние как массив нулей
         zero_state = np.array([GFn.GFn(0, 1)] * int(self.p_mat.shape[1]))
         self.vex = [[zero_state]] # Начальная вершина решетки
+        vex_set = [set(gfn_array_to_str(zero_state))] # Начальная вершина решетки
         self.edg = [] # Список рёбер
 
         # Создаём массив символов на основе входной матрицы
@@ -44,23 +47,31 @@ class Trellis:
             for y in range(self.p_mat.shape[1]):
                 symbol_np_arr[x][y] = GFn.GFn(self.p_mat[x][y], 1)
 
+        symbol_all = self.symbol_all()
+
         # Построение решетки
+        print("building trellis")
         for layer in range(self.p_mat.shape[0]):
-            print(layer)
             vex_new = []
+            vex_new_set = set()
             edg_new = []
             symbol_layer = symbol_np_arr[layer]
+            print(f"process {layer} / {self.p_mat.shape[0]}. vex to pass {len(self.vex[-1])}")
             for v_last in self.vex[-1]:
-                for symbol in self.symbol_all():
+                for symbol in symbol_all:
                     add_v = symbol * symbol_layer + v_last
                     edge = (v_last, symbol, add_v)
                     edg_new.append(edge)
-                    if not in_list(vex_new, add_v):
+
+                    add_v_str = gfn_array_to_str(add_v)
+                    if add_v_str not in vex_new_set:
                         vex_new.append(add_v)
+                        vex_new_set.add(add_v_str)
+            vex_set.append(vex_new_set)
             self.vex.append(vex_new)
             self.edg.append(edg_new)
-        
-        self.remove_nonzero(self.edg, self.vex)
+
+        self.remove_nonzero(self.edg, self.vex, vex_set)
     
     # Функция построения и отображения графа (решетки) по слоям
     def plot_sections(self, title=None, save_name=None):
