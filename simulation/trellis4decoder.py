@@ -56,7 +56,7 @@ class Trellis:
             vex_new_set = set()
             edg_new = []
             symbol_layer = symbol_np_arr[layer]
-            print(f"process {layer} / {self.p_mat.shape[0]}. vex to pass {len(self.vex[-1])}")
+            print(f"process {layer + 1} / {self.p_mat.shape[0]}. vex to pass {len(self.vex[-1])}")
             for v_last in self.vex[-1]:
                 for symbol in symbol_all:
                     add_v = symbol * symbol_layer + v_last
