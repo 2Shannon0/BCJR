@@ -12,8 +12,18 @@ class BCJRDecoder:
         """
         self.edg = edg
 
+        del self.edg[-1]
+
         self.edg_bpsk = deepcopy(self.edg)
         self.make_edges_with_bpsk()
+
+        for i in range(len(self.edg)):
+            for j in range(len(self.edg[i])):
+                prev_vex = gfn_array_to_str(self.edg[i][j][0])
+                next_vex = gfn_array_to_str(self.edg[i][j][2])
+
+                self.edg[i][j] = (prev_vex, int(self.edg[i][j][1]), next_vex)
+                self.edg_bpsk[i][j] = (prev_vex, self.edg_bpsk[i][j][1], next_vex)
 
     def decode(self, llr_in, sigma2):
         a_priori = 0.5

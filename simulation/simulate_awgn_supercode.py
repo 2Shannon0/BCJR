@@ -43,8 +43,12 @@ if __name__ == "__main__":
     fer = [0] * len(esno_array)
     ber = [0] * len(esno_array)
 
-    decoder1 = BCJRDecoder(trellis1.vex, trellis1.edg)
-    decoder2 = BCJRDecoder(trellis2.vex, trellis2.edg)
+    # последнее ребро не нужно, ибо оно по факту ни о чем. Кол-во ярусов должно быть N, а в массиве их N+1
+    del trellis1.edg[-1]
+    del trellis2.edg[-1]
+
+    decoder1 = BCJRDecoder(trellis1.edg)
+    decoder2 = BCJRDecoder(trellis2.edg)
 
     for (i, esno) in enumerate(esno_array):
         tests_passed, wrong_decoding, errors_at_all = 0, 0, 0
