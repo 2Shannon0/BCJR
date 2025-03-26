@@ -1,28 +1,31 @@
 from BCJR import BCJRDecoder
+import ctypes
+import numpy as np
+import os
 from simulation.trellis4decoder import Trellis
 from simulation.trellis_repo import get_trellis
 from simulation.bpsk import bpsk_modulation, bpsk_demodulation
-from awgn import awgn_llr
+from simulation.awgn import awgn_llr
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 
 ESNO_START = -6
-ESNO_END = 4.8
+ESNO_END = 6
 ESNO_STEP = 0.4
-WRONG_DECODING_NUMBER = 30
+WRONG_DECODING_NUMBER = 15
 
 # Раскоментить, если нет закэшированной решетки
-# trellis = Trellis("../matricies/file_hamming.csv")
-# trellis.build_trellis()
+trellis = Trellis("/Users/aleksejbandukov/Documents/python/BCJR_Project/matricies/file_hamming.csv")
+trellis.build_trellis()
 
-trellis = get_trellis("trellis_bch_15_7")
+# trellis = get_trellis("hamming")
 
 N = len(trellis.vex) - 1
 
 # Задаем кодовое слово
 # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
-codeword_initial = [1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1] # BCH(15, 7)
-# codeword_initial = [0] * N
+# codeword_initial = [1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1] # BCH(15, 7)
+codeword_initial = [0] * N
 
 codeword_modulated = bpsk_modulation(codeword_initial)
 
@@ -37,8 +40,10 @@ while round(value, 2) <= ESNO_END:
 fer = [0] * len(esno_array)
 ber = [0] * len(esno_array)
 
+del trellis.edg[-1]
+
 # Инициализируем декодер
-decoder = BCJRDecoder(trellis.vex, trellis.edg)
+decoder = BCJRDecoder(trellis.edg)
 
 # # Запускаем моделирование
 for (i, esno) in enumerate(esno_array):
