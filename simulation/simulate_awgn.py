@@ -10,8 +10,8 @@ from BCJR import BCJRDecoder
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 
-ESNO_START = 4.2
-ESNO_END = 4.6
+ESNO_START = 4.8
+ESNO_END = 5.2
 ESNO_STEP = 0.2
 WRONG_DECODING_NUMBER = 50
 
@@ -19,7 +19,7 @@ WRONG_DECODING_NUMBER = 50
 # trellis = Trellis("/Users/aleksejbandukov/Documents/python/BCJR_Project/matricies/file_hamming.csv")
 # trellis.build_trellis()
 trellis_name = 'BCH_MATRIX_N_31_K_16_DEFAULT'
-trellis = get_trellis(trellis_name)
+trellis = get_trellis(f'trellis_binaries/{trellis_name}')
 
 N = len(trellis.vex) - 1
 
