@@ -10,8 +10,8 @@ from BCJR import BCJRDecoder
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 
-ESNO_START = -4
-ESNO_END = 4
+ESNO_START = 4.2
+ESNO_END = 4.6
 ESNO_STEP = 0.2
 WRONG_DECODING_NUMBER = 50
 
@@ -22,6 +22,9 @@ trellis_name = 'BCH_MATRIX_N_31_K_16_DEFAULT'
 trellis = get_trellis(trellis_name)
 
 N = len(trellis.vex) - 1
+
+TITLE = f'Decoding BCJR, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END} {trellis_name}'
+print('\n',TITLE,'\n')
 
 # Задаем кодовое слово
 # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)

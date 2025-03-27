@@ -11,7 +11,7 @@ def save_trellis(file_path, trellis_name):
     t_h.build_trellis()
     # t_h.plot_sections()
 
-    with(open(trellis_name, "wb")) as f:
+    with(open(f'trellis_binaries/{trellis_name}', "wb")) as f:
         pickle.dump(t_h, f)
     print(f'\nРешетка "{trellis_name}" сохранена!')
 
