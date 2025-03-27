@@ -1,9 +1,9 @@
 import pickle
-from simulation.trellis4decoder import Trellis
+from trellis4decoder import Trellis
 
 
-FILE_PATH = "../matricies/LDPC_16_10.csv"
-TRELLIS_NAME = "trellis_ldpc_16_10"
+FILE_PATH = "/home/k111/BCJR/matricies/BCH_MATRIX_N_31_K_26_half_2.csv"
+TRELLIS_NAME = "BCH_MATRIX_N_31_K_26_half_2"
 
 
 def save_trellis(file_path, trellis_name):
@@ -11,8 +11,9 @@ def save_trellis(file_path, trellis_name):
     t_h.build_trellis()
     # t_h.plot_sections()
 
-    with(open(trellis_name, "wb")) as f:
+    with(open(f'trellis_binaries/{trellis_name}', "wb")) as f:
         pickle.dump(t_h, f)
+    print(f'\nРешетка "{trellis_name}" сохранена!')
 
 
 def get_trellis(trellis_name):

@@ -1,35 +1,38 @@
 from BCJR import BCJRDecoder
-from simulation.trellis_repo import get_trellis
-from simulation.trellis4decoder import Trellis
-from simulation.bpsk import bpsk_modulation, bpsk_demodulation
-from simulation.awgn import awgn_llr
+from trellis_repo import get_trellis
+from trellis4decoder import Trellis
+from bpsk import bpsk_modulation, bpsk_demodulation
+from awgn import awgn_llr
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 from copy import deepcopy
 from random import randrange
 import numpy as np
 import concurrent.futures
+from trellis_repo import get_trellis
 
 if __name__ == "__main__":
 
-    ESNO_START = -6
-    ESNO_END = 4.8
-    ESNO_STEP = 0.4
-    WRONG_DECODING_NUMBER = 15
-    SUPERCODE_ITERATIONS = 5
+    ESNO_START = 9.4
+    ESNO_END = 9.8
+    ESNO_STEP = 0.2
+    WRONG_DECODING_NUMBER = 30
+    SUPERCODE_ITERATIONS = 2
 
-    trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_1.csv")
-    trellis1.build_trellis()
-    trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_2.csv")
-    trellis2.build_trellis()
+    # trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_1.csv")
+    # trellis1.build_trellis()
+    # trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_2.csv")
+    # trellis2.build_trellis()
+    trellis1 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_1')
+    trellis2 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_2')
 
     N = len(trellis1.vex) - 1
 
     # Задаем нулевое кодовое слово
     # codeword_initial = [0] * N
     # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
-    codeword_initial = [1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1,
-                        1]  # BCH(15, 7)
+    codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
+
     codeword_modulated = bpsk_modulation(codeword_initial)
 
     # Задаем список EsNo
@@ -44,12 +47,13 @@ if __name__ == "__main__":
     ber = [0] * len(esno_array)
 
     # последнее ребро не нужно, ибо оно по факту ни о чем. Кол-во ярусов должно быть N, а в массиве их N+1
-    del trellis1.edg[-1]
-    del trellis2.edg[-1]
+    # del trellis1.edg[-1]
+    # del trellis2.edg[-1]
 
     decoder1 = BCJRDecoder(trellis1.edg)
     decoder2 = BCJRDecoder(trellis2.edg)
-
+    TITLE = f'Decoding SUPERCODE, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}, iter: {SUPERCODE_ITERATIONS}, matrix: 2, BCH(31,26)'
+    print('\n',TITLE,'\n')
     for (i, esno) in enumerate(esno_array):
         tests_passed, wrong_decoding, errors_at_all = 0, 0, 0
         print(f"\n-------------------- EsNo = {esno} --------------------")
@@ -128,4 +132,5 @@ if __name__ == "__main__":
     plt.ylabel("FER")
     plt.legend()
     plt.grid(True, which="both", linestyle="--")
-    plt.show()
+    # plt.show()
+    plt.savefig(f'{TITLE}.png', dpi=300, bbox_inches='tight')

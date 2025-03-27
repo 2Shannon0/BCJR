@@ -1,2 +1,6 @@
 index.py
 __pycache__
+build/
+simulation/BCH_MATRIX_N_31_K_16_DEFAULT
+*.so
+trellis_binaries/
