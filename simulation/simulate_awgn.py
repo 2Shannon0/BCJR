@@ -10,8 +10,8 @@ from BCJR import BCJRDecoder
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 
-ESNO_START = 4.8
-ESNO_END = 5.2
+ESNO_START = 5.4
+ESNO_END = 5.8
 ESNO_STEP = 0.2
 WRONG_DECODING_NUMBER = 50
 
