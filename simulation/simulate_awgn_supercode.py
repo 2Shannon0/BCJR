@@ -29,9 +29,12 @@ if __name__ == "__main__":
     N = len(trellis1.vex) - 1
 
     # Задаем нулевое кодовое слово
-    # codeword_initial = [0] * N
+    codeword_initial = [0] * N
+
+    # codeword_initial = [0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0]  # BCH(15, 5)
     # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
-    codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
+    # codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
+    # codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
 
     codeword_modulated = bpsk_modulation(codeword_initial)
 
