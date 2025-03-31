@@ -13,26 +13,28 @@ from trellis_repo import get_trellis
 
 if __name__ == "__main__":
 
-    ESNO_START = -6
-    ESNO_END = 7.2
-    ESNO_STEP = 0.4
-    WRONG_DECODING_NUMBER = 45
-    SUPERCODE_ITERATIONS = 2
+    ESNO_START = -4
+    ESNO_END = 9
+    ESNO_STEP = 0.2
+    WRONG_DECODING_NUMBER = 50
+    SUPERCODE_ITERATIONS = 5
 
-    trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_1_3.csv")
-    trellis1.build_trellis()
-    trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_2_3.csv")
-    trellis2.build_trellis()
-    trellis3 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_3_3.csv")
-    trellis3.build_trellis()
-    # trellis1 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_1')
-    # trellis2 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_2')
+    # trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_1_3.csv")
+    # trellis1.build_trellis()
+    # trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_2_3.csv")
+    # trellis2.build_trellis()
+    # trellis3 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_3_3.csv")
+    # trellis3.build_trellis()
+    trellis1 = get_trellis('/home/k111/BCJR/simulation/trellis_binaries/BCH_MATRIX_N_31_K_16_part_1_3')
+    trellis2 = get_trellis('/home/k111/BCJR/simulation/trellis_binaries/BCH_MATRIX_N_31_K_16_part_2_3')
+    trellis3 = get_trellis('/home/k111/BCJR/simulation/trellis_binaries/BCH_MATRIX_N_31_K_16_part_3_3')
 
     N = len(trellis1.vex) - 1
 
     # Задаем нулевое кодовое слово
     # codeword_initial = [0] * N
-    codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
+    # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
+    codeword_initial = [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0]   # BCH(31, 16)
     # codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
 
     codeword_modulated = bpsk_modulation(codeword_initial)
@@ -51,7 +53,7 @@ if __name__ == "__main__":
     decoder1 = BCJRDecoder(trellis1.edg)
     decoder2 = BCJRDecoder(trellis2.edg)
     decoder3 = BCJRDecoder(trellis3.edg)
-    TITLE = f'Decoding SUPERCODE, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}, iter: {SUPERCODE_ITERATIONS}, matrix: 2, BCH(31,26)'
+    TITLE = f'Decoding SUPERCODE, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}, iter: {SUPERCODE_ITERATIONS}, matrix: 3, BCH(31,16)'
     print('\n',TITLE,'\n')
     for (i, esno) in enumerate(esno_array):
         tests_passed, wrong_decoding, errors_at_all = 0, 0, 0
@@ -138,4 +140,5 @@ if __name__ == "__main__":
     plt.ylabel("FER")
     plt.legend()
     plt.grid(True, which="both", linestyle="--")
-    plt.show()
+    # plt.show()
+    plt.savefig(f'{TITLE}.png', dpi=300, bbox_inches='tight')
