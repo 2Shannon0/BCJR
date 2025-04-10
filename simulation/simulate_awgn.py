@@ -9,32 +9,35 @@ from awgn import awgn_llr
 from BCJR import BCJRDecoder
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
+import time
 
-ESNO_START = 4.8
-ESNO_END = 5.2
+start = time.time()
+
+ESNO_START = -4
+ESNO_END = 4
 ESNO_STEP = 0.2
 WRONG_DECODING_NUMBER = 50
 
 # Раскоментить, если нет закэшированной решетки
-# trellis = Trellis("/Users/aleksejbandukov/Documents/python/BCJR_Project/matricies/file_hamming.csv")
-# trellis.build_trellis()
-trellis_name = 'BCH_MATRIX_N_31_K_16_DEFAULT'
-trellis = get_trellis(f'trellis_binaries/{trellis_name}')
+trellis = Trellis("/Users/aleksejbandukov/Documents/python/BCJR_Project/matricies/BCH_MATRIX_N_15_K_11_DEFAULT.csv")
+trellis.build_trellis()
+# trellis_name = 'BCH_MATRIX_N_31_K_16_DEFAULT'
+# trellis = get_trellis(f'trellis_binaries/{trellis_name}')
 
 N = len(trellis.vex) - 1
 
-TITLE = f'Decoding BCJR, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END} {trellis_name}'
+TITLE = f'Decoding BCJR, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}'
 print('\n',TITLE,'\n')
 
 # Задаем кодовое слово
 # codeword_initial = [0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0] # BCH(15, 5)
 # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
-# codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
+codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
 # codeword_initial = [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0]   # BCH(31, 16)
 # codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
 # codeword_initial = [0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0] # BCH(31, 21)
 
-codeword_initial = [0] * N
+# codeword_initial = [0] * N
 
 codeword_modulated = bpsk_modulation(codeword_initial)
 
@@ -65,7 +68,8 @@ for (i, esno) in enumerate(esno_array):
         llr_in, sigma2 = awgn_llr(codeword_modulated, esno)
 
         # llr после декодирования
-        llr_out = bcjr_decoder.decode(decoder_python.edg, decoder_python.edg_bpsk, llr_in, sigma2)
+        # llr_out = decoder_python.decode(llr_in, sigma2)
+        llr_out = bcjr_decoder.decode_precise(decoder_python.edg, decoder_python.edg_bpsk, llr_in, sigma2)
 
         # Декодированное кодовое слово в бинарном виде
         codeword_result = bpsk_demodulation(llr_out)
@@ -91,6 +95,10 @@ print(esno_array)
 print(fer)
 print(ber)
 
+end = time.time()
+
+print(f"Время выполнения: {end - start:.4f} секунд")
+
 fer_smooth = gaussian_filter1d(fer, sigma=2).tolist() # Параметр sigma овечает за то, насколько сильно сглаживать график. При 2 выглядит оптимально
 
 plt.plot(esno_array, fer, label="Original", alpha=0.5, linewidth=1)
@@ -100,5 +108,6 @@ plt.xlabel("EsNo")
 plt.ylabel("FER")
 plt.legend()
 plt.grid(True, which="both", linestyle="--")
-# plt.show()
-plt.savefig(f'../modeling_results/BCJR_{trellis_name}_from_{ESNO_START}_to_{ESNO_END}.png', dpi=300, bbox_inches='tight')
+plt.show()
+# plt.savefig(f'../modeling_results/BCJR_{trellis_name}_from_{ESNO_START}_to_{ESNO_END}.png', dpi=300, bbox_inches='tight')
+
