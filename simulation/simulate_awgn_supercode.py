@@ -1,3 +1,4 @@
+import bcjr_decoder
 from BCJR import BCJRDecoder
 from trellis_repo import get_trellis
 from trellis4decoder import Trellis
@@ -11,29 +12,32 @@ import numpy as np
 import concurrent.futures
 from trellis_repo import get_trellis
 
+def wrapper_bcjr(edg, edg_bpsk, llr, sigma2):
+    return bcjr_decoder.decode(edg, edg_bpsk, llr, sigma2)
+
 if __name__ == "__main__":
 
-    ESNO_START = 9.4
-    ESNO_END = 9.8
-    ESNO_STEP = 0.2
+    ESNO_START = -8
+    ESNO_END = 6.8
+    ESNO_STEP = 0.4
     WRONG_DECODING_NUMBER = 30
-    SUPERCODE_ITERATIONS = 2
+    SUPERCODE_ITERATIONS = 3
 
-    # trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_1.csv")
-    # trellis1.build_trellis()
-    # trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_2.csv")
-    # trellis2.build_trellis()
-    trellis1 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_1')
-    trellis2 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_2')
+    trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_11_HALF_1.csv")
+    trellis1.build_trellis()
+    trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_11_HALF_2.csv")
+    trellis2.build_trellis()
+    # trellis1 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_1')
+    # trellis2 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_2')
 
     N = len(trellis1.vex) - 1
 
     # Задаем нулевое кодовое слово
-    codeword_initial = [0] * N
+    # codeword_initial = [0] * N
 
     # codeword_initial = [0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0]  # BCH(15, 5)
     # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
-    # codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
+    codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
     # codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
 
     codeword_modulated = bpsk_modulation(codeword_initial)
@@ -49,20 +53,16 @@ if __name__ == "__main__":
     fer = [0] * len(esno_array)
     ber = [0] * len(esno_array)
 
-    # последнее ребро не нужно, ибо оно по факту ни о чем. Кол-во ярусов должно быть N, а в массиве их N+1
-    # del trellis1.edg[-1]
-    # del trellis2.edg[-1]
-
     decoder1 = BCJRDecoder(trellis1.edg)
     decoder2 = BCJRDecoder(trellis2.edg)
     TITLE = f'Decoding SUPERCODE, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}, iter: {SUPERCODE_ITERATIONS}, matrix: 2, BCH(31,26)'
     print('\n',TITLE,'\n')
-    for (i, esno) in enumerate(esno_array):
-        tests_passed, wrong_decoding, errors_at_all = 0, 0, 0
-        print(f"\n-------------------- EsNo = {esno} --------------------")
 
-        # Создаём пул процессов ОДИН раз перед началом тестов
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        for (i, esno) in enumerate(esno_array):
+            tests_passed, wrong_decoding, errors_at_all = 0, 0, 0
+            print(f"\n-------------------- EsNo = {esno} --------------------")
+
             while wrong_decoding < WRONG_DECODING_NUMBER:
                 tests_passed += 1
 
@@ -83,8 +83,8 @@ if __name__ == "__main__":
                     llr_to_decode_2 = [llr[j] - llr_prev_super_2[j] for j in range(N)]
 
                     # Запускаем два декодера в параллельных процессах
-                    future1 = executor.submit(decoder1.decode, llr_to_decode_1, sigma2)
-                    future2 = executor.submit(decoder2.decode, llr_to_decode_2, sigma2)
+                    future1 = executor.submit(wrapper_bcjr, decoder1.edg, decoder1.edg_bpsk, llr_to_decode_1, sigma2)
+                    future2 = executor.submit(wrapper_bcjr, decoder2.edg, decoder2.edg_bpsk, llr_to_decode_2, sigma2)
 
                     # Ожидание результатов
                     llr_out_1 = future1.result()
@@ -135,5 +135,5 @@ if __name__ == "__main__":
     plt.ylabel("FER")
     plt.legend()
     plt.grid(True, which="both", linestyle="--")
-    # plt.show()
-    plt.savefig(f'{TITLE}.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    # plt.savefig(f'{TITLE}.png', dpi=300, bbox_inches='tight')
