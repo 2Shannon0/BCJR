@@ -3,7 +3,7 @@ from BCJR import BCJRDecoder
 from trellis_repo import get_trellis
 from trellis4decoder import Trellis
 from bpsk import bpsk_modulation, bpsk_demodulation
-from awgn import awgn_llr
+from awgn import awgn_llr, awgn_llr_complex
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 from copy import deepcopy
@@ -12,20 +12,18 @@ import numpy as np
 import concurrent.futures
 from trellis_repo import get_trellis
 
-def wrapper_bcjr(edg, edg_bpsk, llr, sigma2):
-    return bcjr_decoder.decode(edg, edg_bpsk, llr, sigma2)
 
 if __name__ == "__main__":
 
     ESNO_START = -8
-    ESNO_END = 6.8
+    ESNO_END = 2.4
     ESNO_STEP = 0.4
     WRONG_DECODING_NUMBER = 30
-    SUPERCODE_ITERATIONS = 3
+    SUPERCODE_ITERATIONS = 4
 
-    trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_11_HALF_1.csv")
+    trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_1.csv")
     trellis1.build_trellis()
-    trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_11_HALF_2.csv")
+    trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_2.csv")
     trellis2.build_trellis()
     # trellis1 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_1')
     # trellis2 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_2')
@@ -36,8 +34,8 @@ if __name__ == "__main__":
     # codeword_initial = [0] * N
 
     # codeword_initial = [0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0]  # BCH(15, 5)
-    # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
-    codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
+    codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
+    # codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
     # codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
 
     codeword_modulated = bpsk_modulation(codeword_initial)
@@ -61,13 +59,17 @@ if __name__ == "__main__":
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for (i, esno) in enumerate(esno_array):
             tests_passed, wrong_decoding, errors_at_all = 0, 0, 0
+            print()
+            print(esno_array)
+            print(fer)
+            print(ber)
             print(f"\n-------------------- EsNo = {esno} --------------------")
 
             while wrong_decoding < WRONG_DECODING_NUMBER:
                 tests_passed += 1
 
                 # Для заданного отношения сигнал-шум считаем llr
-                llr, sigma2 = awgn_llr(codeword_modulated, esno)
+                llr, sigma2 = awgn_llr_complex(codeword_modulated, esno)
 
                 llr_initial = deepcopy(llr)
                 llr_result = [0] * N
@@ -83,8 +85,8 @@ if __name__ == "__main__":
                     llr_to_decode_2 = [llr[j] - llr_prev_super_2[j] for j in range(N)]
 
                     # Запускаем два декодера в параллельных процессах
-                    future1 = executor.submit(wrapper_bcjr, decoder1.edg, decoder1.edg_bpsk, llr_to_decode_1, sigma2)
-                    future2 = executor.submit(wrapper_bcjr, decoder2.edg, decoder2.edg_bpsk, llr_to_decode_2, sigma2)
+                    future1 = executor.submit(decoder1.decode, llr_to_decode_1, sigma2)
+                    future2 = executor.submit(decoder2.decode, llr_to_decode_2, sigma2)
 
                     # Ожидание результатов
                     llr_out_1 = future1.result()

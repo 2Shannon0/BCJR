@@ -13,11 +13,11 @@ from trellis_repo import get_trellis
 
 if __name__ == "__main__":
 
-    ESNO_START = -6
-    ESNO_END = 5.2
+    ESNO_START = -8
+    ESNO_END = 2.4
     ESNO_STEP = 0.4
-    WRONG_DECODING_NUMBER = 25
-    SUPERCODE_ITERATIONS = 8
+    WRONG_DECODING_NUMBER = 20
+    SUPERCODE_ITERATIONS = 10
 
     trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_1_4.csv")
     trellis1.build_trellis()
@@ -34,6 +34,7 @@ if __name__ == "__main__":
 
     # Задаем нулевое кодовое слово
     # codeword_initial = [0] * N
+    # codeword_initial = [0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0]  # BCH(15, 5)
     codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
     # codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
 
@@ -56,12 +57,16 @@ if __name__ == "__main__":
     decoder4 = BCJRDecoder(trellis4.edg)
     TITLE = f'Decoding SUPERCODE, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}, iter: {SUPERCODE_ITERATIONS}, matrix: 2, BCH(31,26)'
     print('\n',TITLE,'\n')
-    for (i, esno) in enumerate(esno_array):
-        tests_passed, wrong_decoding, errors_at_all = 0, 0, 0
-        print(f"\n-------------------- EsNo = {esno} --------------------")
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        for (i, esno) in enumerate(esno_array):
+            tests_passed, wrong_decoding, errors_at_all = 0, 0, 0
+            print()
+            print(esno_array)
+            print(fer)
+            print(ber)
+            print(f"\n-------------------- EsNo = {esno} --------------------")
 
-        # Создаём пул процессов ОДИН раз перед началом тестов
-        with concurrent.futures.ProcessPoolExecutor() as executor:
+            # Создаём пул процессов ОДИН раз перед началом тестов
             while wrong_decoding < WRONG_DECODING_NUMBER:
                 tests_passed += 1
 

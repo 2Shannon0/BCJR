@@ -85,7 +85,7 @@ end_time = time.time()
 print(f"Python декодирование: {end_time-start_time:.6f} секунд")
 
 start_time = time.time()
-result_cpp = bcjr_decoder.decode(python_decoder.edg, python_decoder.edg_bpsk, llr_in, sigma2)
+result_cpp = python_decoder.decode_cpp(llr_in, sigma2)
 end_time = time.time()
 print(f"CPP декодирование: {end_time-start_time:.6f} секунд")
 
