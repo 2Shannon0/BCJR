@@ -2,7 +2,7 @@ import pickle
 from trellis4decoder import Trellis
 
 
-FILE_PATH = "/home/k111/BCJR/matricies/BCH_MATRIX_N_31_K_26_half_2.csv"
+FILE_PATH = "/home/k111/BCJR_complex/matricies/BCH_MATRIX_N_31_K_26_half_2.csv"
 TRELLIS_NAME = "BCH_MATRIX_N_31_K_26_half_2"
 
 

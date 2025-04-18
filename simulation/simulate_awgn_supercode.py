@@ -15,18 +15,18 @@ from trellis_repo import get_trellis
 
 if __name__ == "__main__":
 
-    ESNO_START = -8
-    ESNO_END = 2.4
-    ESNO_STEP = 0.4
-    WRONG_DECODING_NUMBER = 30
-    SUPERCODE_ITERATIONS = 4
+    ESNO_START = 3.2
+    ESNO_END = 10
+    ESNO_STEP = 0.2
+    WRONG_DECODING_NUMBER = 120
+    SUPERCODE_ITERATIONS = 5
 
-    trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_1.csv")
-    trellis1.build_trellis()
-    trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_2.csv")
-    trellis2.build_trellis()
-    # trellis1 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_1')
-    # trellis2 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_2')
+    # trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_1.csv")
+    # trellis1.build_trellis()
+    # trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_HALF_2.csv")
+    # trellis2.build_trellis()
+    trellis1 = get_trellis('/home/k111/BCJR_complex/simulation/trellis_binaries/BCH_MATRIX_N_31_K_26_half_1')
+    trellis2 = get_trellis('/home/k111/BCJR_complex/simulation/trellis_binaries/BCH_MATRIX_N_31_K_26_half_2')
 
     N = len(trellis1.vex) - 1
 
@@ -34,9 +34,9 @@ if __name__ == "__main__":
     # codeword_initial = [0] * N
 
     # codeword_initial = [0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0]  # BCH(15, 5)
-    codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
+    # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
     # codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
-    # codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
+    codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
 
     codeword_modulated = bpsk_modulation(codeword_initial)
 
@@ -123,10 +123,10 @@ if __name__ == "__main__":
 
                     print(f"fer = {fer[i]}, ber = {ber[i]}, tests_passed = {tests_passed}")
 
-    print("\nRESULTS")
-    print(esno_array)
-    print(fer)
-    print(ber)
+        print("\nRESULTS")
+        print(esno_array)
+        print(fer)
+        print(ber)
 
     fer_smooth = gaussian_filter1d(fer, sigma=1).tolist()
 
@@ -137,5 +137,5 @@ if __name__ == "__main__":
     plt.ylabel("FER")
     plt.legend()
     plt.grid(True, which="both", linestyle="--")
-    plt.show()
+    # plt.show()
     # plt.savefig(f'{TITLE}.png', dpi=300, bbox_inches='tight')
