@@ -12,29 +12,29 @@ import time
 
 start = time.time()
 
-ESNO_START = -10
-ESNO_END = 2.4
-ESNO_STEP = 0.4
-WRONG_DECODING_NUMBER = 100
+ESNO_START = 2
+ESNO_END = 10
+ESNO_STEP = 0.2
+WRONG_DECODING_NUMBER = 120
 
 # Раскоментить, если нет закэшированной решетки
 # trellis = Trellis("/Users/aleksejbandukov/Documents/python/BCJR_Project/matricies/BCH_MATRIX_N_15_K_11_DEFAULT.csv")
 # trellis.build_trellis()
-# trellis_name = 'BCH_MATRIX_N_31_K_16_DEFAULT'
-trellis = get_trellis(f'trellis_bch_15_7')
+trellis_name = 'BCH_MATRIX_N_31_K_21_DEFAULT'
+trellis = get_trellis(f'./trellis_binaries/{trellis_name}')
 
 N = len(trellis.vex) - 1
 
-TITLE = f'Decoding BCJR, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}'
+TITLE = f'Decoding BCJR, trellis: {trellis_name} WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}'
 print('\n',TITLE,'\n')
 
 # Задаем кодовое слово
 # codeword_initial = [0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0] # BCH(15, 5)
-codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
+# codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
 # codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
 # codeword_initial = [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0]   # BCH(31, 16)
 # codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
-# codeword_initial = [0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0] # BCH(31, 21)
+codeword_initial = [0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0] # BCH(31, 21)
 
 # codeword_initial = [0] * N
 
@@ -88,10 +88,10 @@ for (i, esno) in enumerate(esno_array):
 
             print(f"fer = {fer[i]}, ber = {ber[i]}, tests_passed = {tests_passed}")
 
-print("\nRESULTS")
-print(esno_array)
-print(fer)
-print(ber)
+    print("\nRESULTS")
+    print(esno_array)
+    print(fer)
+    print(ber)
 
 end = time.time()
 
@@ -106,6 +106,6 @@ plt.xlabel("EsNo")
 plt.ylabel("FER")
 plt.legend()
 plt.grid(True, which="both", linestyle="--")
-plt.show()
+# plt.show()
 # plt.savefig(f'../modeling_results/BCJR_{trellis_name}_from_{ESNO_START}_to_{ESNO_END}.png', dpi=300, bbox_inches='tight')
 

@@ -13,27 +13,30 @@ from trellis_repo import get_trellis
 
 if __name__ == "__main__":
 
-    ESNO_START = -8
-    ESNO_END = 1.6
-    ESNO_STEP = 0.4
-    WRONG_DECODING_NUMBER = 30
-    SUPERCODE_ITERATIONS = 8
+    ESNO_START = -10
+    ESNO_END = 10
+    ESNO_STEP = 0.2
+    WRONG_DECODING_NUMBER = 120
+    SUPERCODE_ITERATIONS = 4
 
-    trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_1_3.csv")
-    trellis1.build_trellis()
-    trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_2_3.csv")
-    trellis2.build_trellis()
-    trellis3 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_3_3.csv")
-    trellis3.build_trellis()
-    # trellis1 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_1')
-    # trellis2 = get_trellis('/home/k111/BCJR/simulation/BCH_MATRIX_N_31_K_26_half_2')
+    # trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_1_3.csv")
+    # trellis1.build_trellis()
+    # trellis2 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_2_3.csv")
+    # trellis2.build_trellis()
+    # trellis3 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_3_3.csv")
+    # trellis3.build_trellis()
+    trellis1 = get_trellis('/home/k909-2/BCJR_complex/simulation/trellis_binaries/BCH_MATRIX_N_31_K_21_part_1_3')
+    trellis2 = get_trellis('/home/k909-2/BCJR_complex/simulation/trellis_binaries/BCH_MATRIX_N_31_K_21_part_2_3')
+    trellis3 = get_trellis('/home/k909-2/BCJR_complex/simulation/trellis_binaries/BCH_MATRIX_N_31_K_21_part_3_3')
+
 
     N = len(trellis1.vex) - 1
 
     # Задаем нулевое кодовое слово
     # codeword_initial = [0] * N
     # codeword_initial = [0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0]  # BCH(15, 5)
-    codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
+    # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
+    codeword_initial = [0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0] # BCH(31, 21)
     # codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
 
     codeword_modulated = bpsk_modulation(codeword_initial)
@@ -52,7 +55,7 @@ if __name__ == "__main__":
     decoder1 = BCJRDecoder(trellis1.edg)
     decoder2 = BCJRDecoder(trellis2.edg)
     decoder3 = BCJRDecoder(trellis3.edg)
-    TITLE = f'Decoding SUPERCODE, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}, iter: {SUPERCODE_ITERATIONS}, matrix: 2, BCH(31,26)'
+    TITLE = f'Decoding SUPERCODE, WRONG_DECODING_NUMBER = {WRONG_DECODING_NUMBER}, ESNO_END = {ESNO_END}, iter: {SUPERCODE_ITERATIONS}, matrix: 3, BCH(31,21)'
     print('\n',TITLE,'\n')
     with concurrent.futures.ProcessPoolExecutor() as executor:
         for (i, esno) in enumerate(esno_array):
@@ -143,4 +146,4 @@ if __name__ == "__main__":
     plt.ylabel("FER")
     plt.legend()
     plt.grid(True, which="both", linestyle="--")
-    plt.show()
+    # plt.show()
