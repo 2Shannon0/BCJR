@@ -1,3 +1,4 @@
+import bcjr_decoder
 from copy import deepcopy
 import numpy as np
 import mpmath as mp
@@ -24,6 +25,12 @@ class BCJRDecoder:
 
                 self.edg[i][j] = (prev_vex, int(self.edg[i][j][1]), next_vex)
                 self.edg_bpsk[i][j] = (prev_vex, self.edg_bpsk[i][j][1], next_vex)
+
+    def decode_cpp(self, llr_in, sigma2):
+        def bcjr_decode_python_callback(llr):
+            return self.decode(llr, sigma2)
+
+        return bcjr_decoder.decode(bcjr_decode_python_callback, self.edg, self.edg_bpsk, llr_in, sigma2)
 
     def decode(self, llr_in, sigma2):
         a_priori = 0.5

@@ -1,5 +1,6 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
+#include <pybind11/functional.h>
 #include <iostream>
 #include <vector>
 #include <unordered_map>
@@ -99,7 +100,8 @@ vector<long double> decode_precise(
     return llr_out;
 }
 
-vector<long double> decode(
+vector<double> decode(
+    function<vector<double>(vector<double>)> python_callback,
     vector<vector<tuple<string, int, string>>> &edg,
     vector<vector<tuple<string, int, string>>> &edg_bpsk,
     const vector<double> &llr_in,
@@ -137,7 +139,7 @@ vector<long double> decode(
             long double cur_gamma = constant_coef * exp(-diff);
 
             if (cur_gamma == 0) {
-                return decode_precise(edg, edg_bpsk, llr_in, sigma2);
+                return python_callback(llr_in);
             }
 
             gammas[i][j] = make_tuple(prev_vex, cur_gamma, next_vex);
@@ -154,7 +156,7 @@ vector<long double> decode(
 
     vector<unordered_map<string, long double>> betas(gammas.size() + 1);
     betas[gammas.size()][get<0>(gammas[0][0])] = 1;
-    vector<long double> llr_out(llr_in.size(), 0);
+    vector<double> llr_out(llr_in.size(), 0);
 
     for (int i = gammas.size() - 1; i >= 0; i--) {
         long double up = 0, down = 0;
@@ -177,7 +179,7 @@ vector<long double> decode(
             }
         }
 
-        llr_out[i] = log(up / down);
+        llr_out[i] = static_cast<double>(log(up / down));
 
         long double sum_beta = 0;
         for (const auto& p : betas[i]) sum_beta += p.second;

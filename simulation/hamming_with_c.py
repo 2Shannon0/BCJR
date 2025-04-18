@@ -16,7 +16,7 @@ def main():
     sigma2 = 0.8
 
     # Вызываем функцию
-    result_c = bcjr_decoder.decode(bcjr_python.edg, bcjr_python.edg_bpsk, llr_in, sigma2)
+    result_c = bcjr_python.decode_cpp(llr_in, sigma2)
 
     result_pyt = bcjr_python.decode(llr_in, sigma2)
 

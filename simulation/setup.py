@@ -15,3 +15,5 @@ setup(
     name="bcjr_decoder",
     ext_modules=ext_modules,
 )
+
+# python3 setup.py build_ext --inplace
