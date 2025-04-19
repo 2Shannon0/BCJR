@@ -12,7 +12,7 @@ import time
 
 start = time.time()
 
-ESNO_START = -10
+ESNO_START = 0
 ESNO_END = 10
 ESNO_STEP = 0.2
 WRONG_DECODING_NUMBER = 120
@@ -20,7 +20,7 @@ WRONG_DECODING_NUMBER = 120
 # Раскоментить, если нет закэшированной решетки
 # trellis = Trellis("/Users/aleksejbandukov/Documents/python/BCJR_Project/matricies/BCH_MATRIX_N_15_K_11_DEFAULT.csv")
 # trellis.build_trellis()
-trellis_name = 'BCH_MATRIX_N_31_K_26_DEFAULT'
+trellis_name = 'BCH_MATRIX_N_31_K_16_DEFAULT'
 trellis = get_trellis(f'./trellis_binaries/{trellis_name}')
 
 N = len(trellis.vex) - 1
@@ -32,8 +32,8 @@ print('\n',TITLE,'\n')
 # codeword_initial = [0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0] # BCH(15, 5)
 # codeword_initial = [1, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 0] # BCH(15, 7)
 # codeword_initial = [1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0] # BCH(15, 11)
-# codeword_initial = [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0]   # BCH(31, 16)
-codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
+codeword_initial = [1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 1, 0, 0]   # BCH(31, 16)
+# codeword_initial = [0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0] # BCH(31, 26)
 # codeword_initial = [0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0] # BCH(31, 21)
 
 # codeword_initial = [0] * N
