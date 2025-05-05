@@ -2,7 +2,7 @@ from BCJR import BCJRDecoder
 from trellis_repo import get_trellis
 from trellis4decoder import Trellis
 from bpsk import bpsk_modulation, bpsk_demodulation
-from awgn import awgn_llr
+from awgn import awgn_llr_complex
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter1d
 from copy import deepcopy
@@ -13,11 +13,11 @@ from trellis_repo import get_trellis
 
 if __name__ == "__main__":
 
-    ESNO_START = -10
-    ESNO_END = 10
+    ESNO_START = 3.6
+    ESNO_END = 3.6
     ESNO_STEP = 0.2
-    WRONG_DECODING_NUMBER = 120
-    SUPERCODE_ITERATIONS = 4
+    WRONG_DECODING_NUMBER = 60
+    SUPERCODE_ITERATIONS = 8
 
     # trellis1 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_1_3.csv")
     # trellis1.build_trellis()
@@ -25,9 +25,9 @@ if __name__ == "__main__":
     # trellis2.build_trellis()
     # trellis3 = Trellis("../matricies/BCH_MATRIX_N_15_K_7_PART_3_3.csv")
     # trellis3.build_trellis()
-    trellis1 = get_trellis('/home/k111/BCJR_complex/simulation/trellis_binaries/BCH_MATRIX_N_31_K_16_part_1_3')
-    trellis2 = get_trellis('/home/k111/BCJR_complex/simulation/trellis_binaries/BCH_MATRIX_N_31_K_16_part_2_3')
-    trellis3 = get_trellis('/home/k111/BCJR_complex/simulation/trellis_binaries/BCH_MATRIX_N_31_K_16_part_3_3')
+    trellis1 = get_trellis('/home/i17m5/BCJR/simulation/trellis_binaries/BCH_MATRIX_N_31_K_16_part_1_3')
+    trellis2 = get_trellis('/home/i17m5/BCJR/simulation/trellis_binaries/BCH_MATRIX_N_31_K_16_part_2_3')
+    trellis3 = get_trellis('/home/i17m5/BCJR/simulation/trellis_binaries/BCH_MATRIX_N_31_K_16_part_3_3')
 
 
     N = len(trellis1.vex) - 1
@@ -71,7 +71,7 @@ if __name__ == "__main__":
                 tests_passed += 1
 
                 # Для заданного отношения сигнал-шум считаем llr
-                llr, sigma2 = awgn_llr(codeword_modulated, esno)
+                llr, sigma2 = awgn_llr_complex(codeword_modulated, esno)
 
                 llr_initial = deepcopy(llr)
                 llr_result = [0] * N
